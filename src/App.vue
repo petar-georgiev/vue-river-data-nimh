@@ -5,6 +5,8 @@
       <option value="">Select a table</option>
       <option value="DunabeBasin">Дунавски басейн</option>
       <option value="BlackSeaBasin">Черноморски басейн</option>
+      <option value="EasternWhiteSeaBasin">Източнобеломорски басейн</option>
+      <option value="WesternWhiteSeaBasin">Западнобеломорски басейн</option>
     </select>
     <br><br>
     <router-view></router-view>
@@ -24,11 +26,16 @@ export default {
       if (this.selectedTable === 'DunabeBasin') {
         this.$router.push({ name: 'riverRoute', params: { basein: 'dunabeBasin' } });
       } else if (this.selectedTable === 'BlackSeaBasin') {
-        this.$router.push('/api/blackSeaBasin');
+        this.$router.push({ name: 'riverRoute', params: { basein: 'blackSeaBasin' } });
+      } else if (this.selectedTable === 'EasternWhiteSeaBasin') {
+        this.$router.push({ name: 'riverRoute', params: { basein: 'easternWhiteSeaBasin' } });
+      } else if(this.selectedTable === 'WesternWhiteSeaBasin') {
+        this.$router.push({ name: 'riverRoute', params: { basein: 'westernWhiteSeaBasin' } });
       }
     }
   }
-}
+ } 
+
 </script>
 <style>
 #app {

@@ -45,11 +45,15 @@
         </tr>
       </tbody>
     </table>
-    <div class="text-center d-flex justify-content-center">
-      <button v-if="this.currentPage > 1" @click="this.currentPage--">Prev</button>
-      <div class="pagination-info">Page: {{ currentPage }} / {{ this.pagesCount }}</div>
-      <button v-if="this.currentPage < this.pagesCount" @click="this.currentPage++"> Next >></button>
-    </div>
+    <nav aria-label="Page navigation">
+      <ul class="text-center d-flex justify-content-center">
+        <button v-if="this.currentPage > 1" @click="this.currentPage--">Previous </button>
+        <span>&nbsp;</span>
+        <div class="pagination border border-dark"><span>&nbsp;</span>Page: {{ currentPage }} / {{ this.pagesCount }}<span>&nbsp;</span> </div>
+        <span>&nbsp;</span>
+        <button v-if="this.currentPage < this.pagesCount" @click="this.currentPage++"> Next >></button>
+      </ul>
+    </nav>
   </div>
 </template>
 
@@ -92,7 +96,7 @@ export default {
       rivers: [],
       displayedRivers: [],
       currentPage: 1,
-      rowsPerPage: 10, // Number of rows per page
+      rowsPerPage: 20, // Number of rows per page
       riverField: ''
     };
   },

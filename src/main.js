@@ -5,12 +5,19 @@ import Rivers from './components/Rivers.vue'
 import 'bootstrap/dist/css/bootstrap.min.css'
 
 
+
 const routes = [
     {
         path: '/api/:basein',
         name:'riverRoute',
         component: Rivers,
         props: true
+    },
+    {
+        path: '/api/:basein/date/:startDate/:endDate',
+        name:'riverRouteByStartEndDate',
+        component: Rivers,
+        props: true 
     },
     // fall back route
     {

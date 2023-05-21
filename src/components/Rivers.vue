@@ -2,6 +2,12 @@
   <div class="container">
     <h2 class="text-center">{{ titleRiver }}</h2>
     <button @click="exportCSV">Export to CSV</button>
+    <br><br>
+    <div class="d-flex justify-content-end">
+      <input type='text' class="form-control" v-model='startDate' placeholder='Select Start Date' style='width: 300px;' @input="validateInput">
+      <input type='text' class="form-control" v-model='endDate' placeholder='Select End Date' style='width: 300px;' @input="validateInput">
+      <button @click="fetchRiversByDates" :disabled="!isFetchDataEnabled">Fetch Data</button>
+    </div>
     <table class="table table-striped">
       <thead class="thead-dark">
         <th>Id</th>
@@ -21,14 +27,14 @@
           <td></td>
           <td></td>
           <td><input type="text" v-model="riverField" /></td>
+          <td><input type="text" v-model="stationField" /></td>
           <td></td>
           <td></td>
           <td></td>
           <td></td>
           <td></td>
           <td></td>
-          <td></td>
-          <td></td>
+          <td><input type="text" v-model="ldField" /></td>
         </tr>
         <tr v-for="river in paginatedItems" v-bind:key="river.id">
           <td> {{ river.id }}</td>
@@ -49,7 +55,8 @@
       <ul class="text-center d-flex justify-content-center">
         <button v-if="this.currentPage > 1" @click="this.currentPage--">Previous </button>
         <span>&nbsp;</span>
-        <div class="pagination border border-dark"><span>&nbsp;</span>Page: {{ currentPage }} / {{ this.pagesCount }}<span>&nbsp;</span> </div>
+        <div class="pagination border border-dark"><span>&nbsp;</span>Page: {{ currentPage }} / {{ this.pagesCount
+        }}<span>&nbsp;</span> </div>
         <span>&nbsp;</span>
         <button v-if="this.currentPage < this.pagesCount" @click="this.currentPage++"> Next >></button>
       </ul>
@@ -88,16 +95,27 @@ export default {
       handler() {
         this.currentPage = 1;
         this.getRivers(this.basein);
-      }
-    }
+      },
+    },
+    startDate() {
+      this.validateInput();
+    },
+    endDate() {
+      this.validateInput();
+    },
   },
   data() {
     return {
       rivers: [],
       displayedRivers: [],
       currentPage: 1,
-      rowsPerPage: 20, // Number of rows per page
-      riverField: ''
+      rowsPerPage: 100, // Number of rows per page
+      riverField: '',
+      stationField: '',
+      ldField: '',
+      startDate: '',
+      endDate: '',
+      isFetchDataEnabled: false,
     };
   },
   computed: {
@@ -105,20 +123,34 @@ export default {
       return this.currentPage * this.rowsPerPage < this.rivers.length;
     },
     pagesCount() {
-      return Math.ceil(this.rivers.length / this.rowsPerPage)
+      const filteredItems = this.rivers.filter(item =>
+        (item.name.toLowerCase().includes(this.riverField.toLowerCase()) || !this.riverField) &&
+        (item.station.toLowerCase().includes(this.stationField.toLowerCase()) || !this.stationField) &&
+        (item.ld.toLowerCase().includes(this.ldField.toLowerCase()) || !this.ldField)
+      );
+      return Math.ceil(filteredItems.length / this.rowsPerPage);
     },
     filterdItems() {
-      return this.rivers.filter(item => item.name.toLowerCase().includes(this.riverField.toLowerCase()) || !this.riverField)
+      return this.rivers.filter(item =>
+        (item.name.toLowerCase().includes(this.riverField.toLowerCase()) || !this.riverField) &&
+        (item.station.toLowerCase().includes(this.stationField.toLowerCase()) || !this.stationField) &&
+        (item.ld.toLowerCase().includes(this.ldField.toLowerCase()) || !this.ldField));
+
     },
     paginatedItems() {
       return this.filterdItems.slice((this.currentPage - 1) * this.rowsPerPage, ((this.currentPage - 1) * this.rowsPerPage) + this.rowsPerPage)
     },
     titleRiver() {
       if (this.basein === 'blackSeaBasin') {
-        return 'Черноморски басейн'
+        return 'Черноморски басейн';
+      } else if (this.basein === 'dunabeBasin') {
+        return 'Дунавски басейн';
+      } else if (this.basein === 'easternWhiteSeaBasin') {
+        return 'Източнобеломорски басейн';
+      } else if (this.basein === 'westernWhiteSeaBasin') {
+        return 'Западнобеломорски басейн';
       }
-
-      return 'Дунавски басейн'
+      return 'Дунавски басейн';
     }
   },
   methods: {
@@ -127,6 +159,16 @@ export default {
         this.rivers = response.data;
         this.loadNextPage();
       });
+    },
+    fetchRiversByDates() {
+      RiverFetcherService.getRiversByStartEndDate(this.basein, this.startDate, this.endDate)
+        .then((response) => {
+          this.rivers = response.data;
+          this.loadNextPage();
+        });
+    },
+    validateInput() {
+      this.isFetchDataEnabled = Boolean(this.startDate) && Boolean(this.endDate);
     },
     loadNextPage() {
       const startIndex = (this.currentPage - 1) * this.rowsPerPage;
@@ -139,10 +181,22 @@ export default {
     },
     exportCSV() {
       const parser = new Parser();
-      const csv = parser.parse(this.filterdItems);
+
+      // Define the desired column order
+      const desiredColumns = ['id', 'numSt', 'name', 'station', 'minQ', 'avrQ', 'maxQ', 'h', 'q', 'dh', 'ld'];
+
+      // Rearrange the column order
+      const rearrangedItems = this.filterdItems.map(item => {
+        const rearrangedItem = {};
+        desiredColumns.forEach(column => {
+          rearrangedItem[column] = item[column];
+        });
+        return rearrangedItem;
+      });
+
+      const csv = parser.parse(rearrangedItems);
       console.log(csv);
-      downloadBlob(csv, `${this.titleRiver
-        } - ${new Date()}.csv`, 'text/csv;encoding:utf-8')
+      downloadBlob(csv, `${this.titleRiver} - ${new Date()}.csv`, 'text/csv;encoding:utf-8');
     }
   },
 };

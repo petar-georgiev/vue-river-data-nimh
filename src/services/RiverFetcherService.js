@@ -1,5 +1,5 @@
 import axios from "axios";
-const BASIN_API_BASE_URL = 'http://localhost:8080/api/'
+const BASIN_API_BASE_URL = 'http://212.72.212.9:19000/api/'
 
 class RiverFetcherService{
     getRivers(river){

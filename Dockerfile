@@ -1,9 +1,12 @@
-FROM node:lts-alpine
+FROM node:lts-alpine as build-stage
 WORKDIR /app
-COPY package.json ./
-RUN  npm install
-EXPOSE 8081
-CMD ["npm", "run", "serve"]
+COPY package*.json ./
+RUN npm install
+COPY . .
+RUN npm run build
 
-FROM sebp/lighttpd:latest
-COPY app/ /var/www/localhost/htdocs/
+# production stage
+FROM nginx:stable-alpine as production-stage
+COPY --from=build-stage /app/dist /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
